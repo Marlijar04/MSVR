@@ -1,22 +1,17 @@
 # MSVR: Multivariate Support Vector Regression
 
-Este repositorio contiene el código y las corridas desarrollados para mi tesis, enfocada en la predicción de series de tiempo multivariadas mediante Máquinas de Soporte Vectorial para Regresión (MSVR).
+This repository contains the code, experiments and results developed for my thesis on multivariate time series forecasting using Multivariate Support Vector Regression (MSVR).
 
-## Objetivo
-Comparar el desempeño de modelos de predicción de series de tiempo multivariadas clásicas y técnicas de aprendizaje automático en la predicción de series de tiempo multivariadas.
+## Objective
+The main objective of this research is to evaluate the predictive performance of MSVR and compare it with classical multivariate time series models, as well as others supervised machine learning approaches. 
 
-## Metodologías incluidas
+## Methodologies included
 - VAR
 - VEC
 - MSETAR
 - MSVR
 
-## Lenguajes utilizadas
+## Tools and technologies
 - Python
 - R
 
-## Estructura del repositorio
-- src/: código fuente
-- notebooks/: análisis y experimentos
-- data/: datos
-- results/: resultados y gráficos
