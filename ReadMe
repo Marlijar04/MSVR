@@ -1,17 +1,89 @@
-# MSVR: Multivariate Support Vector Regression
+This repository contains the code, experiments, and results developed for my thesis on multivariate time series forecasting using Multivariate Support Vector Regression (MSVR).
 
-This repository contains the code, experiments and results developed for my thesis on multivariate time series forecasting using Multivariate Support Vector Regression (MSVR).
+*Objective*
 
-## Objective
-The main objective of this research is to evaluate the predictive performance of MSVR and compare it with classical multivariate time series models, as well as others supervised machine learning approaches. 
+The main objective of this research is to evaluate the predictive performance of MSVR and compare it with classical multivariate time series models.
 
-## Methodologies included
-- VAR
-- VEC
-- MSETAR
-- MSVR
+*Methodologies Included*
+The repository includes the implementation and experimental evaluation of the following multivariate time series forecasting methodologies:
 
-## Tools and technologies
-- Python
-- R
+* VAR
+* VEC
+* MSETAR
+* MSVR
 
+These methodologies are evaluated under different experimental settings in order to compare their forecasting performance and computational behavior.
+
+*Tools and Technologies*
+
+* Python
+* R
+
+*MSVR Model Structure and Usage*
+
+The repository includes a dedicated model folder containing the Python modules required to run the MSVR implementation and the corresponding forecasting experiments:
+
+model/
+-Base.py
+-MSVR.py
+-utility.py
+
+These files work together and provide the main components required for the implementation of Multivariate Support Vector Regression.
+
+* Base.py contains the base functionality used by the model implementation.
+* MSVR.py contains the main MSVR model and its estimation procedures.
+* utility.py contains auxiliary functions used for data preparation, lag construction, model evaluation, and other supporting procedures.
+
+The model folder is used by the Python notebooks included in the repository.
+
+The notebooks access these modules using imports such as:
+
+from model.Base import Base
+from model.MSVR import MSVR
+from model.utility import *
+
+*Forecasting Experiments*
+
+The repository contains different notebooks for the implementation and comparison of multivariate time series forecasting methods.
+
+MSVR: Multivariate Support Vector Regression (MSVR) is the main machine learning methodology evaluated in this research. The corresponding notebooks implement the model, generate forecasts, perform hyperparameter optimization, and evaluate predictive performance using different experimental configurations and use time series cross-validation and without time series cross-validtacion.
+VAR: Vector Autoregressive (VAR) models are used as a classical multivariate time series benchmark. The experiments evaluate the forecasting performance of VAR models under different lag structures and simulated multivariate time series processes.
+VEC: Vector Error Correction (VEC) models are used to evaluate forecasting performance in multivariate systems with cointegration relationships. The corresponding experiments consider different cointegration settings and model configurations.
+MSETAR: Multivariate Self-Exciting Threshold Autoregressive (MSETAR) models are included to evaluate forecasting performance under nonlinear multivariate time series dynamics.
+
+The notebooks contain the specific experimental design, data generation procedures, model estimation, forecasting strategies, and performance evaluation for each methodology.
+
+Installation and Execution
+
+Before running the notebooks, follow these steps:
+
+1. Download or clone the complete repository.
+2. Preserve the original repository structure, including the model directory.
+3. Install the required Python libraries listed in the Required Libraries notebook.
+4. Make sure that the model directory is available in the repository root.
+5. Open the notebook corresponding to the methodology to be evaluated.
+6. Run the notebook cells sequentially.
+
+
+*Required Libraries*
+
+The main Python libraries required to run the forecasting experiments include:
+
+* pandas
+* numpy
+* matplotlib
+* scipy
+* scikit-learn
+* statsmodels
+* scikeras
+* openpyxl
+
+The required dependencies and installation instructions are described in the Required Libraries notebook.
+
+The models are evaluated using performance measures such as:
+
+* Root Mean Squared Error (RMSE)
+* Computational time
+* Number of support vectors
+
+The results are used to compare the predictive performance and computational behavior of MSVR against the other multivariate forecasting methodologies considered in the research.
