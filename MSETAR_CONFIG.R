@@ -4,7 +4,7 @@ library(tsDyn)
 library(Metrics)
 library(openxlsx)
 # It is necessary to load the rolling MSETAR forecasting functions before running this script.
-source("C:/Users/huma1003/OneDrive - NIQ/DOCUMENTOS IMPORTANTES/Mis_Cosas/MarlijarTM/Rolling MSETAR.R")
+source("XXXX.R")
 
 # Generate and save synthetic datasets
 
@@ -221,7 +221,7 @@ writeData(wb, sheet = "Resultados", x = results_df)
 
 
 # Save
-output_file <- "C:/Users/huma1003/OneDrive - NIQ/DOCUMENTOS IMPORTANTES/Mis_Cosas/MarlijarTM/msvr-master/MSETAR/Resultados_msetar_data_3.xlsx"
+output_file <- "XXX.xlsx"
 saveWorkbook(wb, output_file, overwrite = TRUE)
 print("Finish")
 
