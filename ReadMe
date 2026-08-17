@@ -87,3 +87,14 @@ The models are evaluated using performance measures such as:
 * Number of support vectors
 
 The results are used to compare the predictive performance and computational behavior of MSVR against the other multivariate forecasting methodologies considered in the research.
+
+*Path Configuration*
+
+Throughout the notebooks and scripts included in this repository, some file and folder paths are represented using XXXXX.
+These placeholders must be replaced with the corresponding local paths on the user’s computer before running the code. The required paths may vary depending on where the repository, datasets, or other input files are stored.
+
+For example:
+
+os.chdir("XXXXX")
+
+In this case, replace XXXXX with the local path where the required files are located.
