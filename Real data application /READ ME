@@ -1,0 +1,19 @@
+Real-Data Application
+
+This section contains the results and code related to the application of the models to real-world data.
+Due to confidentiality, the original real dataset cannot be publicly shared, as the data are not owned by the authors. Therefore, the files provided in this repository contain the corresponding model estimates, results, metrics, and code required to reproduce and understand the analysis without exposing the original data.
+
+* Predictions_Test* 
+This file contains the model estimates generated from the real-data application fore ach model. Since the original dataset cannot be made publicly available, the estimated results are provided instead of the raw data.
+
+*DMandMetrics*
+
+This file contains the real-data results and the different evaluation metrics used to compare the performance of the models after applying them to the real dataset.
+
+Realdata_Application
+
+This folder contains the code and supporting information used for the real-data application of the VAR, VEC, and MSVR models.
+
+MSETAR_Realdata_Application
+
+This folder contains the code and results corresponding to the application of the MSETAR model to the real data, including the model execution and the resulting estimates.
