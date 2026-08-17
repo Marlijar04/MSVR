@@ -3,8 +3,232 @@ library(mtarm)
 library(tsDyn)
 library(Metrics)
 library(openxlsx)
-# It is necessary to load the rolling MSETAR forecasting functions before running this script.
-source("XXXX.R")
+
+#Functions
+mTAR.pred<-function (model, orig, h = 1, iterations = 3000, ci = 0.95, output = TRUE) 
+{
+  y <- model$data
+  arorder <- model$arorder
+  beta <- model$beta
+  sigma <- model$sigma
+  thr <- model$thr
+  include.mean <- model$cnst
+  delay <- model$delay
+  p <- max(arorder)
+  k <- length(arorder)
+  d <- delay[2]
+  nT <- nrow(y)
+  ky <- ncol(y)
+  if (orig < 1) 
+    orig <- nT
+  if (orig > nT) 
+    orig <- nT
+  if (h < 1) 
+    h <- 1
+  Sigh <- NULL
+  for (j in 1:k) {
+    sig <- sigma[, ((j - 1) * ky + 1):(j * ky)]
+    m1 <- eigen(sig)
+    P <- m1$vectors
+    Di <- diag(sqrt(m1$values))
+    sigh <- P %*% Di %*% t(P)
+    Sigh <- cbind(Sigh, sigh)
+  }
+  Ysim <- array(0, dim = c(h, ky, iterations))
+  for (it in 1:iterations) {
+    yp <- y[1:orig, ]
+    et <- matrix(rnorm(h * ky), h, ky)
+    for (ii in 1:h) {
+      t <- orig + ii
+      thd <- yp[(t - d), delay[1]]
+      JJ <- 1
+      for (j in 1:(k - 1)) {
+        if (thd > thr[j]) {
+          JJ <- j + 1
+        }
+      }
+      Jst <- (JJ - 1) * ky
+      at <- matrix(et[ii, ], 1, ky) %*% Sigh[, (Jst + 1):(Jst + 
+                                                            ky)]
+      x <- NULL
+      if (include.mean[JJ]) 
+        x <- 1
+      pJ <- arorder[JJ]
+      phi <- beta[, (Jst + 1):(Jst + ky)]
+      for (i in 1:pJ) {
+        x <- c(x, yp[(t - i), ])
+      }
+      yhat <- matrix(x, 1, length(x)) %*% phi[1:length(x), 
+      ]
+      yhat <- yhat + at
+      yp <- rbind(yp, yhat)
+      Ysim[ii, , it] <- yhat
+    }
+  }
+  pred <- NULL
+  upp <- NULL
+  low <- NULL
+  pr <- (1 - ci)/2
+  pro <- c(pr, 1 - pr)
+  for (ii in 1:h) {
+    fst <- NULL
+    lowb <- NULL
+    uppb <- NULL
+    for (j in 1:ky) {
+      ave <- mean(Ysim[ii, j, ])
+      quti <- quantile(Ysim[ii, j, ], prob = pro)
+      fst <- c(fst, ave)
+      lowb <- c(lowb, quti[1])
+      uppb <- c(uppb, quti[2])
+    }
+    pred <- rbind(pred, fst)
+    low <- rbind(low, lowb)
+    upp <- rbind(upp, uppb)
+  }
+  if (output) {
+    colnames(pred) <- colnames(y)
+    cat("Forecast origin: ", orig, "\n")
+    cat("Predictions: 1-step to ", h, "-step", "\n")
+    print(pred)
+    cat("Lower bounds of ", ci * 100, " % confident intervals", 
+        "\n")
+    print(low)
+    cat("Upper bounds: ", "\n")
+    print(upp)
+  }
+  mTAR.pred <- list(data = y, pred = pred, Ysim = Ysim)
+}
+
+
+mTAR.pred.rolling <- function(model, h = 1, iterations = 3000, ci = 0.95, output = TRUE, roll_steps = 1, test_set=NULL) {
+  model=est
+  test_set=as.matrix(test)
+  y <- rbind(model$data,test_set)
+  y_test<-test_set
+  y_train=model$data # Datos originales
+  arorder <- model$arorder
+  beta <- model$beta
+  sigma <- model$sigma
+  thr <- model$thr
+  include.mean <- model$cnst
+  delay <- model$delay
+  p <- max(arorder)
+  k <- length(arorder)
+  d <- delay[2]
+  nT <- nrow(y_train)  # Tamaño de los datos de Entranamineto
+  ky <- ncol(y_train)
+  nTest <- nrow(y_test) 
+  orig<-nT
+  # Asegurar que orig esté en el rango válido
+  h=1
+  if (h < 1) h <- 1
+  
+  # Matrices de covarianza
+  Sigh <- NULL
+  for (j in 1:k) {
+    sig <- sigma[, ((j - 1) * ky + 1):(j * ky)]
+    m1 <- eigen(sig)
+    P <- m1$vectors
+    Di <- diag(sqrt(m1$values))
+    sigh <- P %*% Di %*% t(P)
+    Sigh <- cbind(Sigh, sigh)
+  }
+  
+  # Matrices para almacenar las predicciones rolling
+  all_preds <- list()  # Lista para almacenar predicciones
+  all_lows <- list()   # Lista para almacenar límites inferiores
+  all_upps <- list()   # Lista para almacenar límites superiores
+  
+  # Rolling forecast
+  current_orig <- orig
+  while (current_orig <= (nT+ nTest - h)) {
+    Ysim <- array(0, dim = c(h, ky, iterations))
+    
+    # Simulación de Monte Carlo para cada origen desplazado
+    for (it in 1:iterations) {
+      yp <- y[1:current_orig, ]  # Valores iniciales hasta el origen actual
+      et <- matrix(rnorm(h * ky), h, ky)  # Errores aleatorios para cada horizonte
+      
+      for (ii in 1:h) {
+        t <- current_orig + ii
+        thd <- yp[(t - d), delay[1]]  # Determina el umbral para cambiar de régimen
+        JJ <- 1
+        for (j in 1:(k - 1)) {
+          if (thd > thr[j]) {
+            JJ <- j + 1
+          }
+        }
+        Jst <- (JJ - 1) * ky
+        at <- matrix(et[ii, ], 1, ky) %*% Sigh[, (Jst + 1):(Jst + ky)]  # Innovación aleatoria
+        
+        # Variables AR, incluye la media si está especificada
+        x <- NULL
+        if (include.mean[JJ]) x <- 1
+        pJ <- arorder[JJ]
+        phi <- beta[, (Jst + 1):(Jst + ky)]
+        
+        # Cálculo de los rezagos del AR
+        for (i in 1:pJ) {
+          x <- c(x, yp[(t - i), ])
+        }
+        
+        # Predicción
+        yhat <- matrix(x, 1, length(x)) %*% phi[1:length(x), ]
+        yhat <- yhat + at
+        yp <- rbind(yp, y[current_orig+ii, ])  # Añade la predicción a los datos históricos
+        Ysim[ii, , it] <- yhat  # Guarda la predicción simulada
+      }
+    }
+    
+    # Cálculo de la predicción media y los intervalos de confianza
+    pred <- NULL
+    upp <- NULL
+    low <- NULL
+    pr <- (1 - ci) / 2
+    pro <- c(pr, 1 - pr)
+    
+    for (ii in 1:h) {
+      fst <- NULL
+      lowb <- NULL
+      uppb <- NULL
+      for (j in 1:ky) {
+        ave <- mean(Ysim[ii, j, ])
+        quti <- quantile(Ysim[ii, j, ], prob = pro)
+        fst <- c(fst, ave)
+        lowb <- c(lowb, quti[1])
+        uppb <- c(uppb, quti[2])
+      }
+      pred <- rbind(pred, fst)
+      low <- rbind(low, lowb)
+      upp <- rbind(upp, uppb)
+    }
+    
+    # Almacenar resultados de este rolling step
+    all_preds[[length(all_preds) + 1]] <- pred
+    all_lows[[length(all_lows) + 1]] <- low
+    all_upps[[length(all_upps) + 1]] <- upp
+    
+    # Imprimir resultados si output es TRUE
+    if (output) {
+      colnames(pred) <- colnames(y)
+      cat("Rolling forecast origin: ", current_orig, "\n")
+      cat("Predictions: 1-step to ", h, "-step\n")
+      print(pred)
+      cat("Lower bounds of ", ci * 100, " % confident intervals\n")
+      print(low)
+      cat("Upper bounds: \n")
+      print(upp)
+    }
+    
+    # Mover el origen según roll_steps
+    current_orig <- current_orig + roll_steps
+  }
+  
+  # Retornar los resultados acumulados de todas las predicciones rolling
+  mTAR.pred.rolling <- list(preds = all_preds, lows = all_lows, upps = all_upps)
+  return(mTAR.pred.rolling)
+}
+
 
 # Generate and save synthetic datasets
 
