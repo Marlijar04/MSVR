@@ -134,12 +134,51 @@ def rmse(y_true, y_pred):
 
 
 
+#### Original functions(uncomment if it is required)
+#from sklearn.svm import SVR
+#from sklearn.base import BaseEstimator, TransformerMixin
 
+#class CustomMSVR(BaseEstimator, TransformerMixin):
+#    def __init__(self, kernel='rbf', degree=3, gamma=0, coef0=0.0, tol=0.001, C=1.0, epsilon=0.1):
+#        self.kernel = kernel
+#        self.degree = degree
+#        self.gamma = gamma
+#        self.coef0 = coef0
+#        self.tol = tol
+#        self.C = C
+#        self.epsilon = epsilon
+#        self.models = []  
+#    def fit(self, X, y):
+#        # Ajustar un modelo SVR para cada variable?
+#        for i in range(y.shape[1]):
+#            svr = SVR(kernel=self.kernel, degree=self.degree, gamma=self.gamma,
+#                      coef0=self.coef0, tol=self.tol, C=self.C, epsilon=self.epsilon)
+#            svr.fit(X, y[:, i])  
+#            self.models.append(svr) 
+#        return self
+#
+#    def predict(self, X):
+#        predictions = np.column_stack([model.predict(X) for model in self.models])
+#        return predictions
+#
+#    def get_params(self, deep=True):
+#        return {
+#            'kernel': self.kernel,
+#            'degree': self.degree,
+#            'gamma': self.gamma,
+#            'coef0': self.coef0,
+#            'tol': self.tol,
+#            'C': self.C,
+#            'epsilon': self.epsilon
+#        }
+
+###Modification por stopping based on number of iterations
+from sklearn.base import BaseEstimator, RegressorMixin
 from sklearn.svm import SVR
-from sklearn.base import BaseEstimator, TransformerMixin
+import numpy as np
 
-class CustomMSVR(BaseEstimator, TransformerMixin):
-    def __init__(self, kernel='rbf', degree=3, gamma=0, coef0=0.0, tol=0.001, C=1.0, epsilon=0.1):
+class CustomMSVR(BaseEstimator, RegressorMixin):
+    def __init__(self, kernel='rbf', degree=3, gamma='scale', coef0=0.0, tol=0.001, C=1.0, epsilon=0.1, max_iter=2000):
         self.kernel = kernel
         self.degree = degree
         self.gamma = gamma
@@ -147,27 +186,31 @@ class CustomMSVR(BaseEstimator, TransformerMixin):
         self.tol = tol
         self.C = C
         self.epsilon = epsilon
-        self.models = []  
+        self.max_iter = max_iter  # <--- Nuevo parámetro para forzar la finalización
+
     def fit(self, X, y):
-        # Ajustar un modelo SVR para cada variable?
-        for i in range(y.shape[1]):
-            svr = SVR(kernel=self.kernel, degree=self.degree, gamma=self.gamma,
-                      coef0=self.coef0, tol=self.tol, C=self.C, epsilon=self.epsilon)
-            svr.fit(X, y[:, i])  
-            self.models.append(svr) 
+        y_arr = np.asarray(y)
+        if y_arr.ndim == 1:
+            y_arr = y_arr.reshape(-1, 1)
+            
+        self.models_ = []  
+        
+        for i in range(y_arr.shape[1]):
+            svr = SVR(
+                kernel=self.kernel, 
+                degree=self.degree, 
+                gamma=self.gamma,
+                coef0=self.coef0, 
+                tol=self.tol, 
+                C=self.C, 
+                epsilon=self.epsilon,
+                max_iter=self.max_iter  # <--- Pasa el límite a SVR
+            )
+            svr.fit(X, y_arr[:, i])  
+            self.models_.append(svr)
+            
         return self
 
     def predict(self, X):
-        predictions = np.column_stack([model.predict(X) for model in self.models])
-        return predictions
-
-    def get_params(self, deep=True):
-        return {
-            'kernel': self.kernel,
-            'degree': self.degree,
-            'gamma': self.gamma,
-            'coef0': self.coef0,
-            'tol': self.tol,
-            'C': self.C,
-            'epsilon': self.epsilon
-        }
+        # Asegura la compatibilidad con el método predict
+        return np.column_stack([model.predict(X) for model in self.models_])
