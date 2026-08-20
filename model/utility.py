@@ -172,7 +172,7 @@ def rmse(y_true, y_pred):
 #            'epsilon': self.epsilon
 #        }
 
-###Modification por stopping based on number of iterations
+###Modification por stopping based on max_iter
 from sklearn.base import BaseEstimator, RegressorMixin
 from sklearn.svm import SVR
 import numpy as np
